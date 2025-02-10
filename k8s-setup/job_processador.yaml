@@ -19,9 +19,12 @@ spec:
             [
               "--project",
               "/app/Main.jl",
-              "-f /mnt/storage/covid-model/trained_model.dat",
-              "-w 0.004",
+              "-f",
+              "/mnt/storage/salipe/Alpha.fasta",
+              "-o",
+              "/mnt/storage/salipe",
               "--classify",
+              "/mnt/storage/covid-model/trained_model.dat",
             ]
           volumeMounts:
             - mountPath: "/mnt/storage"

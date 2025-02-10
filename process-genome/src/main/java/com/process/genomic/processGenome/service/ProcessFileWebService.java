@@ -4,14 +4,17 @@
  */
 package com.process.genomic.processGenome.service;
 
+import com.process.genomic.processGenome.vo.FileTreeResponse;
 import com.process.genomic.processGenome.vo.UserDirRequest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  *
@@ -32,6 +36,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping(value = "/files", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ProcessFileWebService {
+    
+    @Autowired
+    private ProcessFileService processFileService;
 
     @Value("${upload.dir:/mnt/storage}")
     private String uploadDir;
@@ -78,17 +85,13 @@ public class ProcessFileWebService {
     }
 
     @GetMapping("/list")
-    public ResponseEntity<List<String>> listFiles() {
+    public ResponseEntity<List<FileTreeResponse>> listFiles() {
         File directory = new File(uploadDir);
         if (!directory.exists() || !directory.isDirectory()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Arrays.asList("Diretório não encontrado"));
+             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Directory not found!");
         }
 
-        List<String> files = Arrays.stream(directory.listFiles())
-                .map(File::getName)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(files);
+        return ResponseEntity.ok(processFileService.getFileTreeResponse(directory));
     }
 
 }
