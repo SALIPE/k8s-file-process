@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: processador-job
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app: processador
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: processador
+          image: rrmgenomicextractor:latest
+          imagePullPolicy: Never
+          command: ["julia"]
+          args:
+            [
+              "--project",
+              "/app/Main.jl",
+              "-f /mnt/storage/covid-model/trained_model.dat",
+              "-w 0.004",
+              "--classify",
+            ]
+          volumeMounts:
+            - mountPath: "/mnt/storage"
+              name: storage-volume
+      volumes:
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: meu-pvc

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: process-genome-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: process-genome-web
+  template:
+    metadata:
+      labels:
+        app: process-genome-web
+    spec:
+      containers:
+        - name: process-genome-web
+          image: process-genome-web:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - mountPath: "/mnt/storage"
+              name: storage-volume
+      volumes:
+        - name: storage-volume
+          persistentVolumeClaim:
+            claimName: meu-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: process-genome-web
+spec:
+  selector:
+    app: process-genome-web
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP

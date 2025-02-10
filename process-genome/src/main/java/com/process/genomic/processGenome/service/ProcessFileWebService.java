@@ -4,6 +4,7 @@
  */
 package com.process.genomic.processGenome.service;
 
+import com.process.genomic.processGenome.vo.UserDirRequest;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,7 +17,9 @@ import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,22 +29,41 @@ import org.springframework.web.multipart.MultipartFile;
  *
  * @author salipe
  */
-
 @RestController
 @RequestMapping(value = "/files", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 public class ProcessFileWebService {
-    
-     @Value("${upload.dir:/mnt/storage}")
+
+    @Value("${upload.dir:/mnt/storage}")
     private String uploadDir;
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    @PostMapping(value = "/create-user-dir")
+    public ResponseEntity<String> createUserDir(
+            @RequestBody UserDirRequest request) {
+
+        File storage = new File(uploadDir);
+        
+        if (!storage.exists() || !storage.isDirectory()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Volume não encontrado");
+        }
+        
+        Path path = Paths.get(uploadDir, request.getUserDir()).toAbsolutePath().normalize();
+        File directory = new File(path.toString());
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        return ResponseEntity.ok("Diretório criado com sucesso: " + directory.getAbsolutePath());
+    }
+
+    @PostMapping(value = "/upload/{dir}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @PathVariable String dir) {
         if (file.isEmpty()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Arquivo vazio");
         }
 
         try {
-            Path path = Paths.get(uploadDir).toAbsolutePath().normalize();
+            Path path = Paths.get(uploadDir, dir).toAbsolutePath().normalize();
             File directory = new File(path.toString());
             if (!directory.exists()) {
                 directory.mkdirs();
@@ -61,12 +83,12 @@ public class ProcessFileWebService {
         if (!directory.exists() || !directory.isDirectory()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Arrays.asList("Diretório não encontrado"));
         }
-        
+
         List<String> files = Arrays.stream(directory.listFiles())
                 .map(File::getName)
                 .collect(Collectors.toList());
-        
+
         return ResponseEntity.ok(files);
     }
-    
+
 }

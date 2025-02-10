@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.process.genomic</groupId>
-	<artifactId>processGenome</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>processGenome</name>
+	<artifactId>process-genome</artifactId>
+	<version>0.0.1</version>
+	<name>process-genome</name>
 	<description>Project to handle genome files</description>
 	<url/>
 	<properties>
